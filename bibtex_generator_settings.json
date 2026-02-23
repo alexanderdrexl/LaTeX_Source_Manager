@@ -1,6 +1,6 @@
 {
-  "target_directory": "C:/Users/drexla/OneDrive - Webasto Group/Dokumente/03_THI/04_Masterarbeit/latex_doku_master/literature",
-  "latex_main_path": "C:/Users/drexla/OneDrive - Webasto Group/Dokumente/03_THI/04_Masterarbeit/latex_doku_master/174654_Drexl_Masterarbeit.tex",
+  "target_directory": "",
+  "latex_main_path": "",
   "last_entry_type": "online",
   "add_date_comment": true,
   "auto_open_browser": true,
@@ -39,4 +39,5 @@
     "after_last_existing": true
   },
   "auto_update_preview": true
+
 }
