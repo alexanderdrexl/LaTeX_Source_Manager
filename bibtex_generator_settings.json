@@ -1,0 +1,42 @@
+{
+  "target_directory": "C:/Users/drexla/OneDrive - Webasto Group/Dokumente/03_THI/04_Masterarbeit/latex_doku_master/literature",
+  "latex_main_path": "C:/Users/drexla/OneDrive - Webasto Group/Dokumente/03_THI/04_Masterarbeit/latex_doku_master/174654_Drexl_Masterarbeit.tex",
+  "last_entry_type": "online",
+  "add_date_comment": true,
+  "auto_open_browser": true,
+  "port": 5000,
+  "bib_placement_sections": [
+    {
+      "id": "s1",
+      "label": "Bücher",
+      "search_text": "% Bücher"
+    },
+    {
+      "id": "s2",
+      "label": "Online-Quellen",
+      "search_text": "% Online-Quellen"
+    },
+    {
+      "id": "s3",
+      "label": "Artikel & Zeitschriften",
+      "search_text": "% Artikel"
+    },
+    {
+      "id": "s4",
+      "label": "Berichte & Normen",
+      "search_text": "% Berichte"
+    },
+    {
+      "id": "s5",
+      "label": "Sonstiges",
+      "search_text": "% Sonstiges"
+    }
+  ],
+  "default_section_id": "",
+  "addbibresource_placement": {
+    "enabled": false,
+    "search_text": "% Literaturverzeichnis",
+    "after_last_existing": true
+  },
+  "auto_update_preview": true
+}

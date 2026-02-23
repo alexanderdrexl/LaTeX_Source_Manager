@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LaTeX Quellen Manager</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <!-- CodeMirror 5 -->
+  <link rel="stylesheet" id="cm-theme-light" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.css" />
+  <link rel="stylesheet" id="cm-theme-dark"  href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/theme/dracula.min.css" />
+  <link rel="stylesheet" href="/static/css/style.css?v=412" />
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <i class="bi bi-book-half"></i>
+    <span>Quellen Manager</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <button class="nav-item active" data-view="create" title="Neue Quelle">
+      <i class="bi bi-plus-circle"></i>
+      <span>Neue Quelle</span>
+    </button>
+    <button class="nav-item" data-view="library" title="Bibliothek">
+      <i class="bi bi-grid-3x3-gap"></i>
+      <span>Bibliothek</span>
+    </button>
+    <button class="nav-item" data-view="history" title="Verlauf">
+      <i class="bi bi-clock-history"></i>
+      <span>Verlauf</span>
+    </button>
+    <button class="nav-item" data-view="settings" title="Einstellungen">
+      <i class="bi bi-gear"></i>
+      <span>Einstellungen</span>
+    </button>
+  </nav>
+
+  <div class="sidebar-footer">
+    <span>v4.1 &mdash; Alex Drexl</span>
+  </div>
+</aside>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="main-content">
+
+  <!-- ===== VIEW: NEUE QUELLE ===== -->
+  <section class="view active" id="view-create">
+    <div class="page-header">
+      <h1><i class="bi bi-plus-circle"></i> Neue Quelle erfassen</h1>
+      <p class="page-subtitle">BibLaTeX-Eintrag erstellen und in LaTeX-Projekt einfügen</p>
+    </div>
+    <div class="create-layout">
+      <div class="form-panel">
+        <div class="card mb-4">
+          <div class="card-header"><i class="bi bi-list-ul"></i> Quellentyp</div>
+          <div class="card-body">
+            <div class="type-grid" id="type-grid"></div>
+          </div>
+        </div>
+        <div class="card mb-4">
+          <div class="card-header" id="form-card-header">
+            <i class="bi bi-pencil-square"></i> Felder ausfüllen
+          </div>
+          <div class="card-body" id="fields-container">
+            <div class="placeholder-msg">
+              <i class="bi bi-arrow-up-circle"></i>
+              Quellentyp oben auswählen
+            </div>
+          </div>
+        </div>
+        <div class="card mb-4" id="key-card" style="display:none">
+          <div class="card-header"><i class="bi bi-key"></i> Zitierschlüssel &amp; Dateiname</div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Zitierschlüssel</label>
+                <div class="input-group">
+                  <input type="text" class="form-control font-mono" id="cite-key-input" placeholder="auto-generiert" />
+                  <button class="btn btn-outline-secondary" id="btn-regen-key" title="Neu generieren"><i class="bi bi-arrow-clockwise"></i></button>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Dateiname</label>
+                <div class="input-group">
+                  <input type="text" class="form-control font-mono" id="filename-input" placeholder="auto-generiert" />
+                  <span class="input-group-text">.bib</span>
+                </div>
+              </div>
+            </div>
+            <div class="mt-3" id="section-assign-wrap" style="display:none">
+              <label class="form-label"><i class="bi bi-bookmark"></i> Abschnitt in LaTeX-Datei <span class="text-muted small">(optional)</span></label>
+              <select class="form-select" id="section-select">
+                <option value="">— Kein Abschnitt —</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="action-bar" id="action-bar" style="display:none">
+          <button class="btn btn-outline-secondary" id="btn-clear"><i class="bi bi-trash"></i> Leeren</button>
+          <button class="btn btn-outline-primary" id="btn-preview-refresh"><i class="bi bi-eye"></i> Vorschau</button>
+          <button class="btn btn-success btn-save" id="btn-save"><i class="bi bi-floppy"></i> Quelle speichern</button>
+        </div>
+      </div>
+      <div class="preview-panel">
+        <div class="card h-100">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-code-square"></i> BibTeX-Vorschau</span>
+            <div class="d-flex align-items-center gap-2">
+              <label class="auto-preview-toggle">
+                <input type="checkbox" id="auto-preview-checkbox" checked /><span>Auto</span>
+              </label>
+              <button class="btn btn-icon" id="btn-copy-preview" title="Kopieren"><i class="bi bi-clipboard"></i></button>
+            </div>
+          </div>
+          <div class="card-body preview-body">
+            <pre class="bibtex-preview" id="bibtex-preview"><span class="preview-placeholder">Vorschau erscheint hier&hellip;</span></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== VIEW: BIBLIOTHEK ===== -->
+  <section class="view" id="view-library">
+    <div class="page-header">
+      <h1><i class="bi bi-grid-3x3-gap"></i> Bibliothek</h1>
+      <p class="page-subtitle">Alle .bib-Quellen durchsuchen, filtern und bearbeiten</p>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="lib-toolbar">
+      <div class="lib-search-wrap">
+        <i class="bi bi-search lib-search-icon"></i>
+        <input type="text" class="lib-search" id="lib-search" placeholder="Suche nach Titel, Autor, Schlüssel, Verlag …" />
+        <button class="lib-search-clear" id="lib-search-clear" title="Löschen" style="display:none"><i class="bi bi-x"></i></button>
+      </div>
+      <select class="form-select lib-filter" id="lib-type-filter" title="Nach Typ filtern">
+        <option value="">Alle Typen</option>
+      </select>
+      <select class="form-select lib-filter" id="lib-year-filter" title="Nach Jahr filtern">
+        <option value="">Alle Jahre</option>
+      </select>
+      <select class="form-select lib-filter lib-filter-sm" id="lib-sort" title="Sortierung">
+        <option value="modified">Zuletzt geändert</option>
+        <option value="title">Titel A–Z</option>
+        <option value="author">Autor A–Z</option>
+        <option value="year-desc">Jahr ↓</option>
+        <option value="year-asc">Jahr ↑</option>
+      </select>
+      <div class="lib-view-toggle">
+        <button class="lib-view-btn active" id="btn-view-grid" title="Kachelansicht"><i class="bi bi-grid-3x3-gap-fill"></i></button>
+        <button class="lib-view-btn" id="btn-view-list" title="Listenansicht"><i class="bi bi-list-ul"></i></button>
+      </div>
+      <button class="btn btn-outline-secondary btn-sm" id="btn-refresh-library" title="Aktualisieren">
+        <i class="bi bi-arrow-clockwise"></i>
+      </button>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="lib-stats" id="lib-stats">
+      <span id="lib-count">0 Einträge</span>
+    </div>
+
+    <!-- Grid / List container -->
+    <div class="lib-grid" id="lib-grid">
+      <div class="empty-state">
+        <i class="bi bi-inbox"></i>
+        <p>Bibliothek wird geladen …</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== VIEW: VERLAUF ===== -->
+  <section class="view" id="view-history">
+    <div class="page-header">
+      <h1><i class="bi bi-clock-history"></i> Verlauf</h1>
+      <p class="page-subtitle">Zuletzt erstellte BibTeX-Dateien</p>
+    </div>
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-folder2-open"></i> BibTeX-Dateien</span>
+        <button class="btn btn-sm btn-outline-secondary" id="btn-refresh-history"><i class="bi bi-arrow-clockwise"></i> Aktualisieren</button>
+      </div>
+      <div class="card-body p-0">
+        <div id="history-list">
+          <div class="empty-state"><i class="bi bi-inbox"></i><p>Noch keine Dateien.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="card mt-4" id="file-viewer-card" style="display:none">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-file-earmark-code"></i> <span id="file-viewer-name"></span></span>
+        <button class="btn btn-icon" id="btn-close-viewer" title="Schließen"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="card-body p-0">
+        <pre class="bibtex-preview" id="file-viewer-content"></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== VIEW: EINSTELLUNGEN ===== -->
+  <section class="view" id="view-settings">
+    <div class="page-header">
+      <h1><i class="bi bi-gear"></i> Einstellungen</h1>
+      <p class="page-subtitle">Pfade, Verhalten, Themes und Abschnitte</p>
+    </div>
+    <div class="settings-grid">
+
+      <!-- Pfade -->
+      <div class="card">
+        <div class="card-header"><i class="bi bi-folder"></i> Pfade</div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Zielverzeichnis <span class="badge bg-danger">Pflicht</span></label>
+            <div class="input-group">
+              <input type="text" class="form-control font-mono" id="setting-target-dir" placeholder="C:\…\literature" />
+              <button class="btn btn-outline-secondary" id="btn-browse-dir"><i class="bi bi-folder2-open"></i></button>
+            </div>
+            <div class="form-text">Ordner, in dem .bib-Dateien gespeichert werden.</div>
+          </div>
+          <div>
+            <label class="form-label fw-semibold">LaTeX-Hauptdatei (.tex)</label>
+            <div class="input-group">
+              <input type="text" class="form-control font-mono" id="setting-latex-main" placeholder="C:\…\main.tex" />
+              <button class="btn btn-outline-secondary" id="btn-browse-tex"><i class="bi bi-file-earmark-text"></i></button>
+            </div>
+            <div class="form-text">Für den automatischen <code>\addbibresource</code>-Eintrag.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Optionen -->
+      <div class="card">
+        <div class="card-header"><i class="bi bi-toggles"></i> Allgemeine Optionen</div>
+        <div class="card-body">
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="setting-add-date" />
+            <label class="form-check-label" for="setting-add-date">
+              <strong>Datumskommentar</strong><br/>
+              <span class="text-muted small">Schreibt <code>% Hinzugefügt am: TT.MM.JJJJ HH:MM</code> in jede .bib-Datei</span>
+            </label>
+          </div>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="setting-auto-browser" />
+            <label class="form-check-label" for="setting-auto-browser">
+              <strong>Browser auto. öffnen</strong><br/>
+              <span class="text-muted small">Chrome (bevorzugt) oder Standard-Browser beim Start öffnen</span>
+            </label>
+          </div>
+          <div>
+            <label class="form-label fw-semibold">Port</label>
+            <input type="number" class="form-control" id="setting-port" min="1024" max="65535" style="max-width:120px" />
+            <div class="form-text">Standard: 5000. Neustart nötig.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Theme -->
+      <div class="card">
+        <div class="card-header"><i class="bi bi-palette"></i> Erscheinungsbild / Themes</div>
+        <div class="card-body">
+          <p class="text-muted small mb-3">Wähle ein visuelles Theme für die Oberfläche. Die Einstellung wird im Browser gespeichert.</p>
+          <div class="theme-grid-settings">
+            <button class="theme-card" data-theme="light">
+              <div class="theme-preview theme-prev-light"></div>
+              <span>Hell</span>
+            </button>
+            <button class="theme-card" data-theme="dark">
+              <div class="theme-preview theme-prev-dark"></div>
+              <span>Dunkel</span>
+            </button>
+            <button class="theme-card" data-theme="ocean">
+              <div class="theme-preview theme-prev-ocean"></div>
+              <span>Ozean</span>
+            </button>
+            <button class="theme-card" data-theme="forest">
+              <div class="theme-preview theme-prev-forest"></div>
+              <span>Wald</span>
+            </button>
+            <button class="theme-card" data-theme="rose">
+              <div class="theme-preview theme-prev-rose"></div>
+              <span>Rose</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- addbibresource -->
+      <div class="card">
+        <div class="card-header"><i class="bi bi-code-slash"></i> <code>\addbibresource</code>-Position</div>
+        <div class="card-body">
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="setting-placement-enabled" />
+            <label class="form-check-label" for="setting-placement-enabled">
+              <strong>Feste Einfügeposition</strong><br/>
+              <span class="text-muted small">Sucht Kommentar in .tex und fügt dahinter ein</span>
+            </label>
+          </div>
+          <div id="placement-config" style="display:none">
+            <label class="form-label">Suchtext</label>
+            <input type="text" class="form-control font-mono" id="setting-placement-text" placeholder="z.B. % Literaturverzeichnis" />
+            <button class="btn btn-outline-secondary btn-sm mt-2" id="btn-check-sections">
+              <i class="bi bi-search"></i> Kommentare in .tex suchen
+            </button>
+            <div id="found-sections" class="mt-2"></div>
+          </div>
+          <div class="form-check form-switch mt-3">
+            <input class="form-check-input" type="checkbox" id="setting-after-last" />
+            <label class="form-check-label" for="setting-after-last">
+              <strong>Nach letztem Eintrag</strong> (Fallback)<br/>
+              <span class="text-muted small">Falls kein Suchtext gefunden wird</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Abschnitte -->
+      <div class="card sections-card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-bookmark-star"></i> Abschnitte / Kategorien</span>
+          <button class="btn btn-sm btn-outline-primary" id="btn-add-section"><i class="bi bi-plus"></i> Hinzufügen</button>
+        </div>
+        <div class="card-body">
+          <p class="text-muted small mb-3">Abschnitte für die Kategorisierung in der LaTeX-Datei. Beim Speichern wird der <code>\addbibresource</code>-Befehl nach dem angegebenen Suchtext eingefügt.</p>
+          <div id="sections-list"></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="mt-4 d-flex gap-2 align-items-center">
+      <button class="btn btn-primary" id="btn-save-settings"><i class="bi bi-floppy"></i> Einstellungen speichern</button>
+      <div class="save-feedback" id="settings-saved-msg" style="display:none">
+        <i class="bi bi-check-circle-fill text-success"></i> Gespeichert!
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===== EDITOR PANEL (Slide-in) ===== -->
+<div class="editor-overlay" id="editor-overlay">
+  <div class="editor-panel" id="editor-panel">
+
+    <!-- Header -->
+    <div class="editor-header">
+      <div class="editor-file-info">
+        <i class="bi bi-file-earmark-code"></i>
+        <div>
+          <div class="editor-filename" id="editor-filename">datei.bib</div>
+          <div class="editor-filepath" id="editor-filepath"></div>
+        </div>
+      </div>
+      <div class="editor-header-actions">
+        <button class="btn btn-icon" id="btn-editor-rename" title="Umbenennen"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-icon btn-icon-danger" id="btn-editor-delete" title="Löschen"><i class="bi bi-trash"></i></button>
+        <button class="btn btn-icon" id="btn-editor-close" title="Schließen"><i class="bi bi-x-lg"></i></button>
+      </div>
+    </div>
+
+    <!-- Meta bar -->
+    <div class="editor-meta" id="editor-meta"></div>
+
+    <!-- CodeMirror container -->
+    <div class="editor-cm-wrap" id="editor-cm-wrap"></div>
+
+    <!-- Footer toolbar -->
+    <div class="editor-footer">
+      <div class="editor-hint"><kbd>Ctrl</kbd>+<kbd>S</kbd> speichern &nbsp;·&nbsp; <kbd>Esc</kbd> schließen</div>
+      <div class="editor-footer-actions">
+        <button class="btn btn-outline-secondary" id="btn-editor-discard"><i class="bi bi-arrow-counterclockwise"></i> Verwerfen</button>
+        <button class="btn btn-success" id="btn-editor-save"><i class="bi bi-floppy"></i> Speichern</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ===== CONFIRM MODAL ===== -->
+<div id="modal-backdrop" class="modal-backdrop-custom" style="display:none">
+  <div class="modal-box">
+    <div class="modal-header">
+      <i class="bi bi-exclamation-triangle" id="modal-icon" style="color:var(--warning)"></i>
+      <h3 id="modal-title">Bestätigung</h3>
+    </div>
+    <p id="modal-body"></p>
+    <div id="modal-extra"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline-secondary" id="modal-cancel">Abbrechen</button>
+      <button class="btn btn-danger" id="modal-confirm">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- CodeMirror Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/search/search.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/search/searchcursor.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/dialog/dialog.min.js"></script>
+<link  rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/dialog/dialog.min.css" />
+<script src="/static/js/app.js?v=412"></script>
+</body>
+</html>
